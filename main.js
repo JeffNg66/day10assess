@@ -13,9 +13,15 @@ const SQL_COUNT_Q = 'select count(*) as q_count from apps where name like ?'
 const SQL_GET_TVSHOW_BY_NAME = 'select tvid, name from tv_shows order by name desc limit ?;';
 const SQL_GET_TVSHOW_BY_TVID = 'select * from tv_shows where tvid = ?'
 */
+const SQL_FIND_TITLE_BY_FIRSTCHAR = 'select title from book2018 where title like ? limit ? offset ?'
+const SQL_COUNT_Q = 'select count(title) as q_count from book2018 where title like ?'
 
-// configure PORT
+// configure Login
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000;
+const API_KEY = process.env.API_KEY || 'm6efhDXNXKATcJGGtVf4yCxXBCCZmazj'
+const Secret = process.env.SECRET || 'sZzfXpT9PghIhAJs'
+const endPoint = 'https://api.nytimes.com/svc/books/v3'
+
 
 // create the database connection pool
 const pool = mysql.createPool({
@@ -58,7 +64,7 @@ app.engine('hbs', handlebars({ defaultLayout: 'default.hbs' }))
 app.set('view engine', 'hbs')
 
 // configure the application
-/* sample code
+
 app.get('/', (req, resp) => {
     resp.status(200)
     resp.type('text/html')
@@ -77,14 +83,15 @@ app.get('/search',
         try {
             conn = await pool.getConnection()
 			  // count the number of results
-              let result = await conn.query(SQL_COUNT_Q, [ `%${q}%` ])
+              let result = await conn.query(SQL_COUNT_Q, [ `${q}%` ])
               //console.log('Result SQL Count: ', result)
               const queryCount = result[0][0].q_count
               //console.log('queryCount ', queryCount)
 
             // perform the query
             //  select * from apps where name like ? limit ?
-            result = await conn.query(SQL_FIND_BY_NAME, [ `%${q}%`, limit, offset ])
+            result = await conn.query(SQL_FIND_TITLE_BY_FIRSTCHAR, [ `${q}%`, limit, offset ])
+            //console.log(result)
             recs = result[0];
 
         } catch(e) {
@@ -99,7 +106,7 @@ app.get('/search',
 
         resp.status(200)
         resp.type('text/html')
-        resp.render('results', 
+        resp.render('booklist', 
             { 
                 result: recs, 
                 hasResult: recs.length > 0,
@@ -107,10 +114,10 @@ app.get('/search',
                 prevOffset: Math.max(0, offset - limit),
                 nextOffset: offset + limit
             }
-        )
+        ) 
     }
 )
 
-*/
+
 
 startApp(app, pool) 

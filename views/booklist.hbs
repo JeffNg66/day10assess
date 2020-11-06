@@ -1,0 +1,37 @@
+{{#if hasResult}}
+    <h2>Letter {{ q }}</h2>
+    <table>
+
+        <tbody>
+            {{#each result}}
+                <tr>
+                    <td>{{ this.title }}</td>
+                </tr>
+            {{/each}}
+
+            <!-- navigation buttons -->
+            <tr>
+                <td>
+                    <form method="GET" action="/search">
+                        <input type="hidden" name="q" value="{{ q }}">
+                        <input type="hidden" name="offset" value={{ prevOffset }}>
+                        <button type="submit">Previous</button>
+                    </form>
+                </td>
+                <td>
+                    <form method="GET" action="/search">
+                        <input type="hidden" name="q" value="{{ q }}">
+                        <input type="hidden" name="offset" value={{ nextOffset }}>
+                        <button type="submit">Next</button>
+                    </form>
+
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+{{else}}
+    <h2>Your search produces no result</h2>
+
+{{/if}}
