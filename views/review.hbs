@@ -1,0 +1,17 @@
+{{#if hasContent}}
+    {{#each review_dis}}
+        <div>
+            <h5>{{ this.title }}</h5>
+            <p>by {{ this.author }}</p>
+            <p>Reviewer: {{ this.reviewer }}</p>
+            <p>Date: {{ this.reviewDate }}</p>
+            <p>{{ this.summary }}</p>
+            <a href="{{ this.url }}" target="_blank">Full Review</a>
+            
+            <p>{{ ../copyright }}</p>
+            <hr>
+        </div>
+    {{/each}}
+{{else}}
+    <p>No review found</p>
+{{/if}} 

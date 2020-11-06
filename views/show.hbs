@@ -16,15 +16,14 @@
 
 		<div class="d-flex justify-content-between">
 			<a class="btn btn-sm btn-warning" href="/">
-				<i class="fas fa-camera mr-1"></i>
 				Back
 			</a>
-			{{#if hasSite}}
-				<a class="btn btn-sm btn-primary" href="{{ show.rating }}" target="_blank">
-				<i class="fas fa-paper-plane mr-1"></i>
-					Official Site
-				</a>
-			{{/if}}
+
+            <a class="btn btn-sm btn-primary" href="/api/{{ show.title }}" target="_blank">
+                Find Review
+            </a>		
+
+
 		</div>
 	</div>
 </div>

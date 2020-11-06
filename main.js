@@ -21,8 +21,7 @@ const SQL_GET_BOOK_BY_ID = 'select * from book2018 where book_id = ?'
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000;
 const API_KEY = process.env.API_KEY || 'm6efhDXNXKATcJGGtVf4yCxXBCCZmazj'
 const Secret = process.env.SECRET || 'sZzfXpT9PghIhAJs'
-const endPoint = 'https://api.nytimes.com/svc/books/v3'
-
+const endPoint = 'https://api.nytimes.com/svc/books/v3/reviews.json'
 
 // create the database connection pool
 const pool = mysql.createPool({
@@ -143,7 +142,7 @@ app.get('/show/:bookid', async (req, resp) => {
 
 		resp.status(200)
 		resp.type('text/html')
-		resp.render('show', { show: result[0], hasSite: false }) //!!result[0].official_site })
+		resp.render('show', { show: result[0] }) //, hasSite: !!result[0].official_site })
 	} catch(e) {
 		console.error('ERROR: ', e)
 		resp.status(500)
@@ -153,6 +152,60 @@ app.get('/show/:bookid', async (req, resp) => {
 	}
 })
 
+app.get('/api/:title',
+    async (req, resp) => {
+        //console.info('body: ', req.query.search)
+        const searchstr = req.params.title
+        //console.info(searchstr)
+        
+        const url = withQuery(
+            endPoint,
+            {
+                //q: req.query.search,
+                title: searchstr,
+                //country: req.query.country,
+                'api-key': API_KEY
+
+            }
+        )
+        //console.info(url)
+
+        let result = await fetch(url)
+
+        try {
+            const review = await result.json()
+            //const news_str = JSON.stringify(news)
+            //console.info(review)
+            //console.info('news_str ', news_str)
+
+            const review_dis = review.results
+                .map(v => {
+                    return { 
+                        title: v.book_title,
+                        author: v.book_author,
+                        reviewer: v.byline,
+                        reviewDate: v.publication_dt,
+                        summary: v.summary,
+                        url: v.url  
+                    }
+                })
+                //console.info(news_dis)
+                //review_dis.push(review.copyright)
+
+            //console.info(review_dis)           
+            resp.status(200)
+            resp.type('text/html')
+            resp.render('review', {
+                searchstr, review_dis,
+                hasContent: review.num_results,
+                copyright: review.copyright
+            })
+        } catch(e) {
+            console.error('Error ', e)
+            return Promise.reject(e)
+        } 
+    } 
+)
 
 app.use((req, resp) => {
 	resp.redirect('/')
