@@ -20,7 +20,7 @@ const SQL_GET_BOOK_BY_ID = 'select * from book2018 where book_id = ?'
 
 // configure Login
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000;
-const API_KEY = process.env.API_KEY || 'm6efhDXNXKATcJGGtVf4yCxXBCCZmazj'
+const API_KEY = process.env.API_KEY || ''
 const endPoint = 'https://api.nytimes.com/svc/books/v3/reviews.json'
 
 // create the database connection pool
@@ -28,8 +28,8 @@ const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT) || 3306,
     database: process.env.DB_NAME || 'goodreads',
-    user: process.env.DB_USER || 'goodread',
-    password: process.env.DB_PASSWORD || 'goodread',
+    user: process.env.DB_USER || '',
+    password: process.env.DB_PASSWORD || '',
     connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 4,
     timezone: '+08:00'
 })
