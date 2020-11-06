@@ -1,36 +1,31 @@
 {{#if hasResult}}
     <h2>Letter {{ q }}</h2>
-    <table>
-
-        <tbody>
+    
+        <div class="list-group">
             {{#each result}}
-                <tr>
-                    <td>{{ this.title }}</td>
-                </tr>
+                <a class="list-group-item list-group-item-action" href="/show/{{this.book_id}}">
+                    {{ this.title }}
+                </a>
             {{/each}}
-
-            <!-- navigation buttons -->
-            <tr>
-                <td>
-                    <form method="GET" action="/search">
-                        <input type="hidden" name="q" value="{{ q }}">
-                        <input type="hidden" name="offset" value={{ prevOffset }}>
-                        <button type="submit">Previous</button>
-                    </form>
-                </td>
-                <td>
-                    <form method="GET" action="/search">
-                        <input type="hidden" name="q" value="{{ q }}">
-                        <input type="hidden" name="offset" value={{ nextOffset }}>
-                        <button type="submit">Next</button>
-                    </form>
-
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-
+        </div>
+        
+    <!-- navigation buttons -->
+    <div class="row">
+        <div class="col">
+            <form method="GET" action="/search">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="offset" value={{ prevOffset }}>
+                <button type="submit">Previous</button>
+            </form>
+        </div>
+        </div class='col'>
+            <form method="GET" action="/search">
+                <input type="hidden" name="q" value="{{ q }}">
+                <input type="hidden" name="offset" value={{ nextOffset }}>
+                <button type="submit">Next</button>
+            </form>
+        </div>
+    </div>
 {{else}}
     <h2>Your search produces no result</h2>
 

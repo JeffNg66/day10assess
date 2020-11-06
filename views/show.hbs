@@ -1,0 +1,30 @@
+<div class="row">
+	<div class="col-4 ">
+		<img class="img-fluid img-thumbnail rounded" src="{{ show.image_url }}">
+        <p>Pages: {{ show.pages }}</p>
+        <p>Rating: {{ show.rating }}</p>
+        <p>Rating Count: {{ show.rating_count }}</p>
+        <p>Genres:</p>
+        <p>{{ show.genres }}</p>
+	</div>
+	<div class="col-8">
+		<h3>{{ show.title }}</h3>
+        <p>by {{ show.authors }}</p>
+		<p class="lead">
+			{{ show.description }}
+		</p>
+
+		<div class="d-flex justify-content-between">
+			<a class="btn btn-sm btn-warning" href="/">
+				<i class="fas fa-camera mr-1"></i>
+				Back
+			</a>
+			{{#if hasSite}}
+				<a class="btn btn-sm btn-primary" href="{{ show.rating }}" target="_blank">
+				<i class="fas fa-paper-plane mr-1"></i>
+					Official Site
+				</a>
+			{{/if}}
+		</div>
+	</div>
+</div>

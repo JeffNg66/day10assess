@@ -13,8 +13,9 @@ const SQL_COUNT_Q = 'select count(*) as q_count from apps where name like ?'
 const SQL_GET_TVSHOW_BY_NAME = 'select tvid, name from tv_shows order by name desc limit ?;';
 const SQL_GET_TVSHOW_BY_TVID = 'select * from tv_shows where tvid = ?'
 */
-const SQL_FIND_TITLE_BY_FIRSTCHAR = 'select title from book2018 where title like ? limit ? offset ?'
+const SQL_FIND_TITLE_BY_FIRSTCHAR = 'select book_id, title from book2018 where title like ? limit ? offset ?'
 const SQL_COUNT_Q = 'select count(title) as q_count from book2018 where title like ?'
+const SQL_GET_BOOK_BY_ID = 'select * from book2018 where book_id = ?'
 
 // configure Login
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000;
@@ -78,14 +79,14 @@ app.get('/search',
         const limit = 10
 
         // acquire a connection from the pool
-        let conn, recs;
+        let conn, recs, nextOff, queryCount;
 
         try {
             conn = await pool.getConnection()
 			  // count the number of results
               let result = await conn.query(SQL_COUNT_Q, [ `${q}%` ])
               //console.log('Result SQL Count: ', result)
-              const queryCount = result[0][0].q_count
+              queryCount = result[0][0].q_count
               //console.log('queryCount ', queryCount)
 
             // perform the query
@@ -104,6 +105,10 @@ app.get('/search',
                 conn.release()
         }
 
+        nextOff = offset + limit
+        if (nextOff > queryCount) nextOff = nextOff - limit
+        //console.info(queryCount, nextOff)
+
         resp.status(200)
         resp.type('text/html')
         resp.render('booklist', 
@@ -112,12 +117,46 @@ app.get('/search',
                 hasResult: recs.length > 0,
                 q: q,
                 prevOffset: Math.max(0, offset - limit),
-                nextOffset: offset + limit
+                nextOffset: nextOff
             }
         ) 
     }
 )
 
+app.get('/show/:bookid', async (req, resp) => {
+
+    const bookid = req.params.bookid
+    //console.info(bookid)
+
+	const conn = await pool.getConnection()
+
+	try {
+        const [ result, _ ] = await conn.query(SQL_GET_BOOK_BY_ID, [ bookid ])
+        //console.log(result)
+        const book = result[0]
+        //console.info(result[0].genres)
+
+        result[0].genres = book.genres.replace(/\|/g, ', ')
+        result[0].authors = book.authors.replace(/\|/g, ', ')
+        //console.info(result[0].authors)
+        //console.info(result[0].genres)
+
+		resp.status(200)
+		resp.type('text/html')
+		resp.render('show', { show: result[0], hasSite: false }) //!!result[0].official_site })
+	} catch(e) {
+		console.error('ERROR: ', e)
+		resp.status(500)
+		resp.end()
+	} finally {
+		conn.release()
+	}
+})
+
+
+app.use((req, resp) => {
+	resp.redirect('/')
+})
 
 
 startApp(app, pool) 
