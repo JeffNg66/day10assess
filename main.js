@@ -3,6 +3,7 @@ const express = require('express')
 const handlebars = require('express-handlebars')
 const fetch = require('node-fetch')
 const withQuery = require('with-query').default
+const morgan = require('morgan')
 // get the driver with promise support
 const mysql = require('mysql2/promise')
 
@@ -20,7 +21,6 @@ const SQL_GET_BOOK_BY_ID = 'select * from book2018 where book_id = ?'
 // configure Login
 const PORT = parseInt(process.argv[2]) || parseInt(process.env.PORT) || 3000;
 const API_KEY = process.env.API_KEY || 'm6efhDXNXKATcJGGtVf4yCxXBCCZmazj'
-const Secret = process.env.SECRET || 'sZzfXpT9PghIhAJs'
 const endPoint = 'https://api.nytimes.com/svc/books/v3/reviews.json'
 
 // create the database connection pool
@@ -59,6 +59,8 @@ const startApp = async (app, pool) => {
 // create an instance of application
 const app = express()
 
+app.use(morgan('combined'))
+
 // configure handlebars
 app.engine('hbs', handlebars({ defaultLayout: 'default.hbs' }))
 app.set('view engine', 'hbs')
@@ -76,16 +78,18 @@ app.get('/search',
         const q = req.query['q'];
         const offset = parseInt(req.query['offset']) || 0
         const limit = 10
+        let nextOff, recs
 
         // acquire a connection from the pool
-        let conn, recs, nextOff, queryCount;
+        //let conn, recs, nextOff, queryCount;
+        const conn = await pool.getConnection()
 
         try {
-            conn = await pool.getConnection()
+            //conn = await pool.getConnection()
 			  // count the number of results
-              let result = await conn.query(SQL_COUNT_Q, [ `${q}%` ])
+            let result = await conn.query(SQL_COUNT_Q, [ `${q}%` ])
               //console.log('Result SQL Count: ', result)
-              queryCount = result[0][0].q_count
+            let queryCount = result[0][0].q_count
               //console.log('queryCount ', queryCount)
 
             // perform the query
@@ -93,7 +97,23 @@ app.get('/search',
             result = await conn.query(SQL_FIND_TITLE_BY_FIRSTCHAR, [ `${q}%`, limit, offset ])
             //console.log(result)
             recs = result[0];
+            //console.info(recs)
 
+            nextOff = offset + limit
+            if (nextOff > queryCount) nextOff = nextOff - limit
+            //console.info(queryCount, nextOff)
+    
+            resp.status(200)
+            resp.type('text/html')
+            resp.render('booklist', 
+                { 
+                    result: recs, 
+                    hasResult: recs.length > 0,
+                    q: q,
+                    prevOffset: Math.max(0, offset - limit),
+                    nextOffset: nextOff
+                }
+            ) 
         } catch(e) {
 			  resp.status(500)
 			  resp.type('text/html')
@@ -104,21 +124,6 @@ app.get('/search',
                 conn.release()
         }
 
-        nextOff = offset + limit
-        if (nextOff > queryCount) nextOff = nextOff - limit
-        //console.info(queryCount, nextOff)
-
-        resp.status(200)
-        resp.type('text/html')
-        resp.render('booklist', 
-            { 
-                result: recs, 
-                hasResult: recs.length > 0,
-                q: q,
-                prevOffset: Math.max(0, offset - limit),
-                nextOffset: nextOff
-            }
-        ) 
     }
 )
 
@@ -133,16 +138,39 @@ app.get('/show/:bookid', async (req, resp) => {
         const [ result, _ ] = await conn.query(SQL_GET_BOOK_BY_ID, [ bookid ])
         //console.log(result)
         const book = result[0]
-        //console.info(result[0].genres)
+        //console.info(result[0])
 
         result[0].genres = book.genres.replace(/\|/g, ', ')
         result[0].authors = book.authors.replace(/\|/g, ', ')
         //console.info(result[0].authors)
         //console.info(result[0].genres)
+        const jsonRec = {
+            bookId: result[0].book_id,
+            title: result[0].title,
+            authors: result[0].authors,
+            summary: result[0].description,
+            pages: result[0].pages,
+            rating: result[0].rating,
+            ratingCount: result[0].rating_count,
+            genre: result[0].genres
+        }
+        //console.info(jsonRec)
 
-		resp.status(200)
-		resp.type('text/html')
-		resp.render('show', { show: result[0] }) //, hasSite: !!result[0].official_site })
+        resp.status(200)
+        resp.format({
+            'text/html': () => {
+                resp.type('text/html')
+                resp.render('show', { show: result[0] })
+            },
+            'application/json': () => {
+                resp.type('application/json')
+                resp.json(jsonRec)                
+            },
+            'default': () => {
+                resp.type('text/plain')
+                resp.send(JSON.stringify(recs))
+            }            
+        })
 	} catch(e) {
 		console.error('ERROR: ', e)
 		resp.status(500)

@@ -1,32 +1,38 @@
+<a href="/">Home</a>
+
 {{#if hasResult}}
-    <h2>Letter {{ q }}</h2>
-    
-        <div class="list-group">
-            {{#each result}}
-                <a class="list-group-item list-group-item-action" href="/show/{{this.book_id}}">
-                    {{ this.title }}
-                </a>
-            {{/each}}
-        </div>
-        
-    <!-- navigation buttons -->
-    <div class="row">
-        <div class="col">
-            <form method="GET" action="/search">
-                <input type="hidden" name="q" value="{{ q }}">
-                <input type="hidden" name="offset" value={{ prevOffset }}>
-                <button type="submit">Previous</button>
-            </form>
-        </div>
-        </div class='col'>
-            <form method="GET" action="/search">
-                <input type="hidden" name="q" value="{{ q }}">
-                <input type="hidden" name="offset" value={{ nextOffset }}>
-                <button type="submit">Next</button>
-            </form>
-        </div>
+    <div class="container">
+        <h2>Letter {{ q }}</h2>
+            <div class="list-group">
+                {{#each result}}
+                    <a class="list-group-item list-group-item-action" href="/show/{{this.book_id}}">
+                        {{ this.title }}
+                    </a>
+                {{/each}}
+            </div>
+
+        <!-- navigation buttons -->
+        <table>
+            <tr>
+               <th>
+               <form method="GET" action="/search">
+                    <input type="hidden" name="q" value="{{ q }}">
+                    <input type="hidden" name="offset" value={{ prevOffset }}>
+                    <button type="submit">Previous</button>
+                </form>
+                </th>
+                <th>
+                <form method="GET" action="/search">
+                    <input type="hidden" name="q" value="{{ q }}">
+                    <input type="hidden" name="offset" value={{ nextOffset }}>
+                    <button type="submit">Next</button>
+                </form>
+                </th>
+            </tr>
+        </table>
+
     </div>
 {{else}}
     <h2>Your search produces no result</h2>
-
 {{/if}}
+
